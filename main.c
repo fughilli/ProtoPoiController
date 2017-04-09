@@ -66,6 +66,10 @@ int main(void)
 
     _BIS_SR(GIE);
 
+    P2DIR |= 0x01;
+
+    uint32_t counter;
+
     while (1)
     {
         counter = 100000;
@@ -77,6 +81,9 @@ int main(void)
                 memcpy(&shadow_control, &memmap.control, sizeof(control_t));
             }
         }
+
+        P2OUT ^= 0x01;
+
         ;   // Do nothing
     }
 
