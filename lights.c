@@ -22,10 +22,10 @@ void lights_init(lights_ctl_t* control)
 
     TA1CCTL1 = TA1CCTL2 = OUTMOD_7;
 
-    /* Configure P1.2 as TA1.1 */
-    P2DIR |= 0x14;
-    P2SEL |= 0x14;
-    P2SEL2 &= ~0x14;
+    /* Configure P3.2 as TA1.1 and P3.3 as TA1.2 */
+    P3DIR |= 0x0C;
+    P3SEL |= 0x0C;
+    P3SEL2 &= ~0x0C;
 
     TA1CTL |= MC_1;
 }
