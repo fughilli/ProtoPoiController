@@ -35,6 +35,6 @@ void ISR_timer1_a1()
 {
     TA1CTL &= ~TAIFG;
 
-    TA1CCR1 = lights_ctl->level[0] * LIGHTS_SCALE_VAL;
-    TA1CCR2 = lights_ctl->level[1] * LIGHTS_SCALE_VAL;
+    TA1CCR1 = (255 - lights_ctl->level[0]) * LIGHTS_SCALE_VAL;
+    TA1CCR2 = (255 - lights_ctl->level[1]) * LIGHTS_SCALE_VAL;
 }
