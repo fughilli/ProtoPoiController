@@ -1,11 +1,21 @@
 #include <msp430.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "i2c_memdev.h"
 #include "lights.h"
 #include "servo.h"
 #include "battery.h"
+
+#define COMMIT_MAGIC_NUMBER (0b101)
+
+typedef struct
+{
+    uint8_t commit : 3;
+    uint8_t pad : 5;
+    uint8_t pad2;
+} control_word_t;
 
 typedef struct
 {
@@ -18,8 +28,11 @@ typedef struct
     battery_t battery;
 } monitor_t;
 
+control_t shadow_control;
+
 typedef struct
 {
+    control_word_t control_word;
     control_t control;
     monitor_t monitor;
 } memmap_t;
@@ -42,15 +55,28 @@ int main(void)
 
     i2c_init_mem(0x42);
     i2c_init_readmem((uint8_t*)&memmap, sizeof(memmap));
-    i2c_init_writemem((uint8_t*)&memmap.control, sizeof(memmap.control));
-    servo_init(&memmap.control.servos);
-    lights_init(&memmap.control.lights);
+    i2c_init_writemem((uint8_t*)&memmap.control_word,
+                      sizeof(memmap.control_word) + sizeof(memmap.control));
+    servo_init(&shadow_control.servos);
+    lights_init(&shadow_control.lights);
     battery_init(&memmap.monitor.battery);
+
+    memcpy(&memmap.control.servos, &shadow_control.servos, sizeof(shadow_control.servos));
+    memcpy(&memmap.control.lights, &shadow_control.lights, sizeof(shadow_control.lights));
 
     _BIS_SR(GIE);
 
     while (1)
     {
+        counter = 100000;
+        while(counter--)
+        {
+            if(memmap.control_word.commit == COMMIT_MAGIC_NUMBER)
+            {
+                memmap.control_word.commit = 0;
+                memcpy(&shadow_control, &memmap.control, sizeof(control_t));
+            }
+        }
         ;   // Do nothing
     }
 
