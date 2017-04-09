@@ -61,6 +61,10 @@ int main(void)
     lights_init(&shadow_control.lights);
     battery_init(&memmap.monitor.battery);
 
+    /* Set initial speeds and light intensity. */
+    shadow_control.servos.pos[0] = shadow_control.servos.pos[1] = 255/2;
+    shadow_control.lights.level[0] = shadow_control.lights.level[1] = 0;
+
     memcpy(&memmap.control.servos, &shadow_control.servos, sizeof(shadow_control.servos));
     memcpy(&memmap.control.lights, &shadow_control.lights, sizeof(shadow_control.lights));
 
