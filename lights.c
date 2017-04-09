@@ -5,7 +5,7 @@
 
 #define SMCLK_FREQ (16000000 / 4)
 #define TA_FREQ (SMCLK_FREQ / 2)
-#define TA_PERIOD (65536)
+#define TA_PERIOD (4096)
 #define LIGHTS_SCALE_VAL NU_DIV_ROUND_UP(TA_PERIOD, 256)
 
 static lights_ctl_t* lights_ctl;
