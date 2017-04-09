@@ -24,10 +24,10 @@ void servo_init(servo_ctl_t* control)
 
     TA0CCTL1 = TA0CCTL2 = OUTMOD_7;
 
-    /* Configure P1.2 as TA0.1 */
-    P1DIR |= 0x04;
-    P1SEL |= 0x04;
-    P1SEL2 &= ~0x04;
+    /* Configure P3.5 as TA0.1 and P3.6 as TA0.2 */
+    P3DIR |= 0x60;
+    P3SEL |= 0x60;
+    P3SEL2 &= ~0x60;
 
     TA0CTL |= MC_1;
 }
