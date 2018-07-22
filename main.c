@@ -1,46 +1,21 @@
+#include "lights.h"
+#include "simple_math.h"
+#include "state_machine.h"
+
 #include <msp430.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "i2c_memdev.h"
-#include "lights.h"
-#include "servo.h"
-#include "battery.h"
+state_machine_t state_machine;
+lights_ctl_t lights;
 
-#define COMMIT_MAGIC_NUMBER (0b101)
+bool tick_flag;
+void tick_callback() { tick_flag = true; }
 
-typedef struct
-{
-    uint8_t commit : 3;
-    uint8_t pad : 5;
-    uint8_t pad2;
-} control_word_t;
-
-typedef struct
-{
-    servo_ctl_t servos;
-    lights_ctl_t lights;
-} control_t;
-
-typedef struct
-{
-    battery_t battery;
-} monitor_t;
-
-control_t shadow_control;
-
-typedef struct
-{
-    control_word_t control_word;
-    control_t control;
-    monitor_t monitor;
-} memmap_t;
-
-static memmap_t memmap;
-
-int main(void)
-{
+int main(void) {
+    tick_flag = false;
     /* Stop the watchdog */
     WDTCTL = WDTPW + WDTHOLD;
 
@@ -48,61 +23,33 @@ int main(void)
     BCSCTL1 = CALBC1_16MHZ;
     DCOCTL = CALDCO_16MHZ;
 
-    /* fSMCLK = fDCO/4 = 4MHz */
-    BCSCTL2 = DIVS_2;
+    /* fSMCLK = fDCO/1 = 16MHz */
+    BCSCTL2 = DIVS_0;
 
     _BIC_SR(GIE);
 
-    i2c_init_mem(0x42);
-    i2c_init_readmem((uint8_t*)&memmap, sizeof(memmap));
-    i2c_init_writemem((uint8_t*)&memmap.control_word,
-                      sizeof(memmap.control_word) + sizeof(memmap.control));
-    servo_init(&shadow_control.servos);
-    lights_init(&shadow_control.lights);
-    battery_init(&memmap.monitor.battery);
-
-    /* Set initial speeds and light intensity. */
-    shadow_control.servos.pos[0] = shadow_control.servos.pos[1] = 255/2;
-    shadow_control.lights.level[0] = shadow_control.lights.level[1] = 0;
-
-    memcpy(&memmap.control.servos, &shadow_control.servos, sizeof(shadow_control.servos));
-    memcpy(&memmap.control.lights, &shadow_control.lights, sizeof(shadow_control.lights));
+    lights_init(&lights, tick_callback);
+    state_machine_init(&state_machine);
 
     _BIS_SR(GIE);
 
-    P2DIR |= 0x01;
-
     uint32_t counter;
 
-    while (1)
-    {
-        counter = 100000;
-        while(counter--)
-        {
-            if(memmap.control_word.commit == COMMIT_MAGIC_NUMBER)
-            {
-                memmap.control_word.commit = 0;
-                memcpy(&shadow_control, &memmap.control, sizeof(control_t));
-            }
-        }
-
-        P2OUT ^= 0x01;
-
-        ;   // Do nothing
+    while (1) {
+        if (tick_flag) {
+            tick_flag = false;
+            state_machine_tick(&state_machine, &lights);
+        };  // Do nothing
     }
 
     return 0;
 }
 
-//__attribute__((__interrupt__(TIMER0_A0_VECTOR)))
 __attribute__((__interrupt__(PORT2_VECTOR)))
 __attribute__((__interrupt__(PORT1_VECTOR)))
 __attribute__((__interrupt__(WDT_VECTOR)))
-__attribute__((__interrupt__(NMI_VECTOR)))
-static void ISR_trap(void) {
-    while(1)
-        ;
-
+__attribute__((__interrupt__(NMI_VECTOR))) static void
+ISR_trap(void) {
     // the following will cause an access violation which results in a PUC reset
-    //WDTCTL = 0;
+    WDTCTL = 0;
 }

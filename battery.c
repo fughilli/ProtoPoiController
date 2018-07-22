@@ -4,8 +4,7 @@
 
 static battery_t* battery;
 
-void battery_init(battery_t* bat)
-{
+void battery_init(battery_t* bat) {
     battery = bat;
 
     /* Configure ADC10 with:
@@ -24,9 +23,7 @@ void battery_init(battery_t* bat)
     ADC10CTL0 |= ADC10SC | ENC;
 }
 
-__attribute__((__interrupt__(ADC10_VECTOR)))
-void ISR_adc10()
-{
+__attribute__((__interrupt__(ADC10_VECTOR))) void ISR_adc10() {
     ADC10CTL0 &= ~ADC10IFG;
 
     *battery = ADC10MEM;
