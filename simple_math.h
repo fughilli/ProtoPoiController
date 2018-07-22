@@ -5,33 +5,24 @@
  *      Author: Kevin
  *
  *
- * Copyright (C) 2012-2014  Kevin Balke
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * Copyright (C) 2012-2018  Kevin Balke
  */
 
 #ifndef SIMPLE_MATH_H_
 #define SIMPLE_MATH_H_
 
-#define lesser(a, b) (((a)<(b))?(a):(b))
-#define greater(a, b) (((a)>(b))?(a):(b))
-#define distance(a, b) (((a)>(b))?((a)-(b)):((b)-(a)))
-#define clip(a, b, t) (((t)<(a))?(a):((((t)>(b))?(b):(t))))
+#include <stdint.h>
+
+#define ARR_SIZE(l) (sizeof(l) / sizeof(l[0]))
+
+#define lesser(a, b) (((a) < (b)) ? (a) : (b))
+#define greater(a, b) (((a) > (b)) ? (a) : (b))
+#define distance(a, b) (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
+#define clip(a, b, t) (((t) < (a)) ? (a) : ((((t) > (b)) ? (b) : (t))))
+
+uint8_t int_sin(uint8_t x);
+uint8_t int_cos(uint8_t x);
+uint8_t int_trig(uint16_t x, const uint8_t* lut, const uint8_t lut_len);
+uint8_t int_lerp(uint16_t a, uint16_t b, uint16_t i);
 
 #endif /* SIMPLE_MATH_H_ */
